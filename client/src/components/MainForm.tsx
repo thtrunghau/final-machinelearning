@@ -331,7 +331,8 @@ const MainForm: React.FC = () => {
   };
 
   const [formData, setFormData] = useState<Record<string, string | number>>({});
-  const [prediction, setPrediction] = useState("");
+  const [prediction, setPrediction] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -340,7 +341,17 @@ const MainForm: React.FC = () => {
   const handleCategoryChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-  const sendDataToBackend = async (data: Record<string, number>) => {
+  const fetchDataFromBackend = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/data");
+      return response.data; // Return fetched data
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw new Error("Failed to fetch data from the backend.");
+    }
+  };
+
+  const sendDataToBackend = async (data: Record<string, string | number>) => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/data",
@@ -358,30 +369,19 @@ const MainForm: React.FC = () => {
     }
   };
 
-  const fetchDataFromBackend = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/data");
-      return response.data; // Return fetched data
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      throw new Error("Failed to fetch data from the backend.");
-    }
-  };
-
   useEffect(() => {
-    const getInitialData = async () => {
+    (async () => {
       try {
         const data = await fetchDataFromBackend();
         console.log("Fetched Data:", data);
-
-        // Optionally set some state with the fetched data
-        setPrediction(data.prediction); // Assuming the response has a 'prediction' field
+        if (data?.prediction){
+          setPrediction(data.prediction); // Update prediction from response
+          // setIsModalVisible(true); // Show modal after successful submission
+        } // Update prediction if available
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
-    };
-
-    getInitialData();
+    })();
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -389,24 +389,20 @@ const MainForm: React.FC = () => {
     console.log("Collected Data:", formData);
 
     try {
+      // Send form data to backend and get response
       const response = await sendDataToBackend(formData);
       console.log("Response from server:", response);
+      if (response?.prediction) {
+        setPrediction(response.prediction); // Update prediction from response
+        setIsModalVisible(true); // Show modal after successful submission
+      } // Update prediction from response
 
-      // Assume the response contains the prediction
-      setPrediction(response.prediction);
-
-      alert(
-        "Data sent successfully! Check the console for the server response.",
-      );
-    } catch (error) {
-      console.error(error);
-      alert("An error occurred while sending data.");
-    }
-
-    try {
-      await sendDataToBackend(formData); // Send form data first
-      const fetchedData = await fetchDataFromBackend(); // Fetch updated data
-      setPrediction(fetchedData.prediction); // Update prediction from fetched data
+      // Fetch updated data from backend
+      const fetchedData = await fetchDataFromBackend();
+      if (fetchedData?.prediction) {
+        setPrediction(fetchedData.prediction); // Update prediction from response
+        setIsModalVisible(true); // Show modal after successful submission
+      }; // Update prediction from fetched data
     } catch (error) {
       console.error("Error during form submission:", error);
       alert("An error occurred while processing your request.");
@@ -414,382 +410,103 @@ const MainForm: React.FC = () => {
   };
 
   return (
-    // <div className="mx-7 mb-10 mt-10 w-full space-y-4 rounded-lg border p-4 shadow-lg">
-    //   <h1 className="mb-6 justify-self-center text-xl font-bold">
-    //     House Information
-    //   </h1>
-    //   <div className="mx-auto flex items-center justify-center">
-    //     <form
-    //       onSubmit={handleSubmit}
-    //       className="flex w-full flex-col space-y-2"
-    //     >
-    //       {/* Input fields */}
-    //       <div>
-    //         <div className="grid grid-cols-5 place-items-center gap-2">
-    //           {inputFields.map(({ label, inputField }) => (
-    //             <div key={inputField}>
-    //               <Input
-    //                 label={label}
-    //                 value={formData[inputField] || ""}
-    //                 onChange={(value) => handleInputChange(inputField, value)}
-    //               />
-    //             </div>
-    //           ))}
-    //         </div>
-    //       </div>
-    //       {/* Category inputs */}
-    //       <div>
-    //         <div className="mt-6 grid grid-cols-5 place-items-center gap-2">
-    //           {Object.entries(categories).map(([key, { label, options }]) => (
-    //             <div key={key}>
-    //               <CategoryInput
-    //                 label={label}
-    //                 options={options}
-    //                 selectedOption={(formData[key] as string) || ""}
-    //                 onSelect={(value) => handleCategoryChange(key, value)}
-    //               />
-    //             </div>
-    //           ))}
-    //         </div>
-    //       </div>
-
-    //       <div className="flex items-center justify-center">
-    //         <button
-    //           type="submit"
-    //           className="mt-6 justify-self-center rounded-md bg-blue-500 px-4 py-2 text-white shadow hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    //         >
-    //           Predict
-    //         </button>
-    //       </div>
-    //       <p>
-    //         Predicted House's Price:{" "}
-    //         {prediction !== null ? `$${prediction}` : "N/A"}
-    //       </p>
-    //     </form>
-    //   </div>
-    // </div>
-    // <div className="container mx-auto space-y-8 rounded-lg bg-gray-100 p-6 shadow-lg">
-    //   <h1 className="text-center text-2xl font-bold text-blue-700">
-    //     House Information
-    //   </h1>
-    //   <form onSubmit={handleSubmit} className="space-y-8">
-    //     {/* Numeric Input Section */}
-    //     <div className="rounded-lg bg-white p-6 shadow-md">
-    //       <h2 className="mb-4 text-lg font-semibold text-blue-600">
-    //         Property Details
-    //       </h2>
-    //       <div className="grid grid-cols-2 place-items-center gap-4 md:grid-cols-3 lg:grid-cols-4">
-    //         {inputFields.map(({ label, inputField }) => (
-    //           <div key={inputField}>
-    //             <Input
-    //               label={label}
-    //               value={formData[inputField] || ""}
-    //               onChange={(value) => handleInputChange(inputField, value)}
-    //             />
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-
-    //     {/* Category Input Section */}
-    //     <div className="rounded-lg bg-white p-6 shadow-md">
-    //       <h2 className="mb-4 text-lg font-semibold text-blue-600">
-    //         Category Selection
-    //       </h2>
-    //       <div className="grid grid-cols-2 place-items-center gap-4 md:grid-cols-3 lg:grid-cols-4">
-    //         {Object.entries(categories).map(([key, { label, options }]) => (
-    //           <div key={key}>
-    //             <CategoryInput
-    //               label={label}
-    //               options={options}
-    //               selectedOption={(formData[key] as string) || ""}
-    //               onSelect={(value) => handleCategoryChange(key, value)}
-    //             />
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-
-    //     {/* Submit and Prediction Section */}
-    //     <div className="text-center">
-    //       <button
-    //         type="submit"
-    //         className="rounded-md bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-2 font-medium text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-    //       >
-    //         Predict
-    //       </button>
-    //     </div>
-    //   </form>
-    //   {prediction !== null && (
-    //     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-400 bg-opacity-50 backdrop-blur-sm">
-    //       <div className="relative w-11/12 max-w-md scale-105 transform rounded-xl bg-gradient-to-br from-white via-gray-100 to-blue-50 p-8 shadow-2xl transition-transform">
-    //         <button
-    //           onClick={() => setPrediction(null)}
-    //           className="absolute right-4 top-4 rounded-full bg-gray-200 p-2 hover:bg-gray-300 focus:outline-none"
-    //         >
-    //           <span className="sr-only">Close</span>
-    //           <svg
-    //             xmlns="http://www.w3.org/2000/svg"
-    //             className="h-6 w-6 text-gray-600"
-    //             fill="none"
-    //             viewBox="0 0 24 24"
-    //             stroke="currentColor"
-    //             strokeWidth={2}
-    //           >
-    //             <path
-    //               strokeLinecap="round"
-    //               strokeLinejoin="round"
-    //               d="M6 18L18 6M6 6l12 12"
-    //             />
-    //           </svg>
-    //         </button>
-    //         <h2 className="mb-4 text-center text-3xl font-bold text-blue-600">
-    //           Predicted Price
-    //         </h2>
-    //         <p className="text-center text-4xl font-extrabold text-green-700 drop-shadow-lg">
-    //           ${prediction}
-    //         </p>
-    //         <div className="mt-6 flex justify-center">
-    //           <button
-    //             onClick={() => setPrediction(null)}
-    //             className="rounded-lg bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
-    //           >
-    //             Close
-    //           </button>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   )}
-    // </div>
-    // <div className="container mx-auto space-y-8 rounded-lg bg-gray-50 p-8 shadow-2xl">
-    //   <h1 className="text-center text-3xl font-extrabold text-blue-800 drop-shadow-sm">
-    //     House Information
-    //   </h1>
-    //   <form onSubmit={handleSubmit} className="space-y-8">
-    //     {/* Numeric Input Section */}
-    //     <div className="rounded-lg bg-white p-6 shadow-lg">
-    //       <h2 className="mb-4 text-lg font-semibold text-blue-600">
-    //         Property Details
-    //       </h2>
-    //       <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
-    //         {inputFields.map(({ label, inputField }) => (
-    //           <div key={inputField}>
-    //             <Input
-    //               label={label}
-    //               value={formData[inputField] || ""}
-    //               onChange={(value) => handleInputChange(inputField, value)}
-    //             />
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-
-    //     {/* Category Input Section */}
-    //     <div className="rounded-lg bg-white p-6 shadow-lg">
-    //       <h2 className="mb-4 text-lg font-semibold text-blue-600">
-    //         Category Selection
-    //       </h2>
-    //       <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
-    //         {Object.entries(categories).map(([key, { label, options }]) => (
-    //           <div key={key}>
-    //             <CategoryInput
-    //               label={label}
-    //               options={options}
-    //               selectedOption={(formData[key] as string) || ""}
-    //               onSelect={(value) => handleCategoryChange(key, value)}
-    //             />
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div>
-
-    //     {/* Submit and Prediction Section */}
-    //     <div className="text-center">
-    //       <button
-    //         type="submit"
-    //         className="rounded-lg bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-500 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-500"
-    //       >
-    //         Predict
-    //       </button>
-    //     </div>
-    //   </form>
-    //   {prediction !== null && (
-    //     <div className="fixed inset-0 top-0 left-0 right-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-md">
-    //       <div className="relative w-11/12 max-w-lg scale-105 transform rounded-xl bg-gradient-to-br from-white via-gray-100 to-blue-50 p-8 shadow-2xl transition-transform">
-    //         {/* Close Button */}
-    //         <button
-    //           onClick={() => setPrediction(null)}
-    //           className="absolute right-4 top-4 rounded-full bg-gray-200 p-2 hover:bg-gray-300 focus:outline-none"
-    //         >
-    //           <span className="sr-only">Close</span>
-    //           <svg
-    //             xmlns="http://www.w3.org/2000/svg"
-    //             className="h-6 w-6 text-gray-600"
-    //             fill="none"
-    //             viewBox="0 0 24 24"
-    //             stroke="currentColor"
-    //             strokeWidth={2}
-    //           >
-    //             <path
-    //               strokeLinecap="round"
-    //               strokeLinejoin="round"
-    //               d="M6 18L18 6M6 6l12 12"
-    //             />
-    //           </svg>
-    //         </button>
-    //         {/* Modal Content */}
-    //         <h2 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
-    //           Predicted Price
-    //         </h2>
-    //         <p className="text-center text-5xl font-black text-green-700 drop-shadow-lg">
-    //           ${prediction}
-    //         </p>
-    //         <div className="mt-8 flex justify-center">
-    //           <button
-    //             onClick={() => setPrediction(null)}
-    //             className="rounded-lg bg-gradient-to-r from-green-500 to-blue-500 px-8 py-3 text-xl font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
-    //           >
-    //             Close
-    //           </button>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   )}
-    // </div>
-    <div className="bg-gradient-to-br from-blue-100 via-white to-green-100 py-12">
-      <div className="container mx-auto space-y-8 rounded-lg bg-white/90 p-8 shadow-2xl backdrop-blur-md">
-        <h1 className="text-center text-4xl font-extrabold text-blue-800 drop-shadow-sm">
-          Predict Your House Price
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Numeric Input Section */}
-          <div className="rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold text-blue-600">
-              Property Details
-            </h2>
-            <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
-              {inputFields.map(({ label, inputField }) => (
-                <div key={inputField}>
-                  <Input
-                    label={label}
-                    value={formData[inputField] || ""}
-                    onChange={(value) => handleInputChange(inputField, value)}
-                  />
-                </div>
-              ))}
-            </div>
+    <div className="container mx-auto space-y-8 rounded-lg bg-gray-50 p-8 shadow-2xl">
+      <h1 className="text-center text-3xl font-extrabold text-blue-800 drop-shadow-sm">
+        Get Your House Price Estimate
+      </h1>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 rounded-lg bg-gray-100 p-4 shadow-md"
+      >
+        {/* Numeric Input Section */}
+        <div className="rounded-lg bg-white p-4 shadow-lg">
+          <h2 className="mb-4 text-lg font-semibold text-blue-600">
+            Enter Property Details (Numerical)
+          </h2>
+          <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
+            {inputFields.map(({ label, inputField }) => (
+              <div key={inputField}>
+                <Input
+                  label={label}
+                  value={formData[inputField] || ""}
+                  onChange={(value) => handleInputChange(inputField, value)}
+                />
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Category Input Section */}
-          <div className="rounded-lg bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold text-blue-600">
-              Category Selection
-            </h2>
-            <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
-              {Object.entries(categories).map(([key, { label, options }]) => (
-                <div key={key}>
-                  <CategoryInput
-                    label={label}
-                    options={options}
-                    selectedOption={(formData[key] as string) || ""}
-                    onSelect={(value) => handleCategoryChange(key, value)}
-                  />
-                </div>
-              ))}
-            </div>
+        {/* Category Input Section */}
+        <div className="rounded-lg bg-white p-4 shadow-lg">
+          <h2 className="mb-4 text-lg font-semibold text-blue-600">
+            Select Property Characteristics (Categorical)
+          </h2>
+          <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
+            {Object.entries(categories).map(([key, { label, options }]) => (
+              <div key={key}>
+                <CategoryInput
+                  label={label}
+                  options={options}
+                  selectedOption={(formData[key] as string) || ""}
+                  onSelect={(value) => handleCategoryChange(key, value)}
+                />
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Submit and Prediction Section */}
-          <div className="text-center">
+        {/* Submit and Prediction Section */}
+        <div className="text-center">
+          <button
+            type="submit"
+            className="rounded-lg bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-500 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-500"
+          >
+            Check The Price
+          </button>
+        </div>
+      </form>
+      {isModalVisible && (
+        <div className="fixed inset-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-md">
+          <div className="relative w-11/12 max-w-lg scale-105 transform rounded-xl bg-gradient-to-br from-white via-gray-100 to-blue-50 p-8 shadow-2xl transition-transform">
+            {/* Close Button */}
             <button
-              type="submit"
-              className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-500"
+              onClick={() => setIsModalVisible(false)}
+              className="absolute right-4 top-4 rounded-full bg-gray-200 p-2 hover:bg-gray-300 focus:outline-none"
             >
-              Predict
+              <span className="sr-only">Close</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
-          </div>
-        </form>
-        {/* {prediction !== null && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-md">
-            <div className="relative w-11/12 max-w-lg scale-105 transform rounded-xl bg-gradient-to-br from-white via-gray-100 to-blue-50 p-8 shadow-2xl transition-transform">
+            {/* Modal Content */}
+            <h2 className="mb-4 text-center text-4xl font-extrabold text-blue-700">
+              The Price Of House Is
+            </h2>
+            <p className="text-center text-5xl font-black text-green-700 drop-shadow-lg">
+              ${prediction}
+            </p>
+            <div className="mt-8 flex justify-center">
               <button
-                onClick={() => setPrediction(null)}
-                className="absolute right-4 top-4 rounded-full bg-gray-200 p-2 hover:bg-gray-300 focus:outline-none"
+                onClick={() => setIsModalVisible(false)}
+                className="rounded-lg bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-500 px-8 py-3 text-xl font-semibold text-white shadow-lg transition-transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
               >
-                <span className="sr-only">Close</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                Close
               </button>
-              <h2 className="mb-4 text-center text-3xl font-bold text-blue-600">
-                Predicted Price
-              </h2>
-              <p className="text-center text-4xl font-extrabold text-green-700 drop-shadow-lg">
-                ${prediction}
-              </p>
-              <div className="mt-6 flex justify-center">
-                <button
-                  onClick={() => setPrediction(null)}
-                  className="rounded-lg bg-gradient-to-r from-green-500 to-blue-500 px-8 py-3 text-lg font-semibold text-white shadow-lg hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
-                >
-                  Close
-                </button>
-              </div>
             </div>
           </div>
-        )} */}
-        {prediction !== null && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-80 backdrop-blur-md">
-            <div className="relative w-full max-w-4xl scale-110 transform rounded-xl bg-gradient-to-br from-white via-gray-100 to-blue-50 p-12 shadow-2xl transition-transform">
-              <button
-                onClick={() => setPrediction(null)}
-                className="absolute right-4 top-4 rounded-full bg-gray-200 p-2 hover:bg-gray-300 focus:outline-none"
-              >
-                <span className="sr-only">Close</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              <h2 className="mb-6 text-center text-4xl font-bold text-blue-600">
-                Predicted Price
-              </h2>
-              <p className="text-center text-5xl font-extrabold text-green-700 drop-shadow-lg">
-                ${prediction}
-              </p>
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={() => setPrediction(null)}
-                  className="rounded-lg bg-gradient-to-r from-green-500 to-blue-500 px-10 py-5 text-xl font-semibold text-white shadow-lg hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}  
-      </div>
+        </div>
+      )}
     </div>
   );
 };
