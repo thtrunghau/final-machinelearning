@@ -419,8 +419,9 @@ const MainForm: React.FC = () => {
         className="space-y-6 rounded-lg bg-gray-100 p-4 shadow-md"
       >
         {/* Numeric Input Section */}
-        <div className="rounded-lg bg-white p-4 shadow-lg">
-          <h2 className="mb-4 text-lg font-semibold text-blue-600">
+        <div className="rounded-lg bg-white p-4 shadow-lg bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-700
+">
+          <h2 className="mb-4 text-lg font-semibold text-white">
             Enter Property Details (Numerical)
           </h2>
           <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -437,11 +438,12 @@ const MainForm: React.FC = () => {
         </div>
 
         {/* Category Input Section */}
-        <div className="rounded-lg bg-white p-4 shadow-lg">
-          <h2 className="mb-4 text-lg font-semibold text-blue-600">
+        <div className="rounded-lg bg-white p-4 shadow-lg bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-700
+">
+          <h2 className="mb-4 text-lg font-semibold text-white">
             Select Property Characteristics (Categorical)
           </h2>
-          <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 place-items-center gap-6 md:grid-cols-3 lg:grid-cols-4 ">
             {Object.entries(categories).map(([key, { label, options }]) => (
               <div key={key}>
                 <CategoryInput

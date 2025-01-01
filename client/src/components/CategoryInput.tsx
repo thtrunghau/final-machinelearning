@@ -14,7 +14,7 @@ const CategoryInput: React.FC<CategoryInputProps> = ({
   return (
     <div className="fex items-center justify-center space-y-2">
       <div className="">
-        <label className="whitespace-nowrap text-sm font-medium text-gray-700">
+        <label className="whitespace-nowrap text-sm font-medium text-white">
           {label}
         </label>
       </div>
