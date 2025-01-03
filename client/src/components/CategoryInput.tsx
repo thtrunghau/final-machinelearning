@@ -1,9 +1,16 @@
+
+interface CategoryOption {
+  value: string;
+  label: string;
+}
+
 interface CategoryInputProps {
   label: string;
-  options: string[];
+  options: CategoryOption[];
   selectedOption: string;
   onSelect: (option: string) => void;
 }
+
 
 const CategoryInput: React.FC<CategoryInputProps> = ({
   label,
@@ -28,8 +35,8 @@ const CategoryInput: React.FC<CategoryInputProps> = ({
             Select an option
           </option>
           {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+            <option key={option.label} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>

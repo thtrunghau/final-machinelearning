@@ -2,335 +2,92 @@ import React, { useEffect, useState } from "react";
 import Input from "./Input";
 import CategoryInput from "./CategoryInput";
 import axios from "axios";
+import { categories } from "../utils/category";
+import { inputFields } from "../utils/numeric";
 
 const MainForm: React.FC = () => {
-  const inputFields = [
-    { label: "MS SubClass", inputField: "msSubClass" },
-    { label: "Lot Frontage", inputField: "lotFrontage" },
-    { label: "Lot Area", inputField: "lotArea" },
-    { label: "Overall Quality", inputField: "overallQual" },
-    { label: "Overall Condition", inputField: "overallCond" },
-    { label: "Year Built", inputField: "yearBuilt" },
-    { label: "Year Remodeled/Added", inputField: "yearRemodAdd" },
-    { label: "Masonry Veneer Area", inputField: "masVnrArea" },
-    { label: "Basement Finished Area 1", inputField: "bsmtFinSF1" },
-    { label: "Basement Finished Area 2", inputField: "bsmtFinSF2" },
-    { label: "Basement Unfinished Area", inputField: "bsmtUnfSF" },
-    { label: "Total Basement Area", inputField: "totalBsmtSF" },
-    { label: "1st Floor Area", inputField: "firstFlrSF" },
-    { label: "2nd Floor Area", inputField: "secondFlrSF" },
-    { label: "Low Quality Finished Area", inputField: "lowQualFinSF" },
-    { label: "Above Ground Living Area", inputField: "grLivArea" },
-    { label: "Basement Full Baths", inputField: "bsmtFullBath" },
-    { label: "Basement Half Baths", inputField: "bsmtHalfBath" },
-    { label: "Full Bathrooms", inputField: "fullBath" },
-    { label: "Half Bathrooms", inputField: "halfBath" },
-    { label: "Bedrooms Above Ground", inputField: "bedroomAbvGr" },
-    { label: "Kitchens Above Ground", inputField: "kitchenAbvGr" },
-    { label: "Total Rooms Above Ground", inputField: "totRmsAbvGrd" },
-    { label: "Fireplaces", inputField: "fireplaces" },
-    { label: "Garage Year Built", inputField: "garageYrBlt" },
-    { label: "Garage Cars", inputField: "garageCars" },
-    { label: "Garage Area", inputField: "garageArea" },
-    { label: "Wood Deck Area", inputField: "woodDeckSF" },
-    { label: "Open Porch Area", inputField: "openPorchSF" },
-    { label: "Enclosed Porch Area", inputField: "enclosedPorch" },
-    { label: "3-Season Porch Area", inputField: "threeSsnPorch" },
-    { label: "Screen Porch Area", inputField: "screenPorch" },
-    { label: "Pool Area", inputField: "poolArea" },
-    { label: "Miscellaneous Value", inputField: "miscVal" },
-    { label: "Month Sold", inputField: "moSold" },
-    { label: "Year Sold", inputField: "yrSold" },
-  ];
-
-  const categories = {
-    msZoning: {
-      label: "Zoning Classification",
-      options: ["RL", "RH", "FV", "RM", "C (all)", "I (all)", "A (agr)"],
-    },
-    street: {
-      label: "Type of Street Access",
-      options: ["Pave", "Grvl"],
-    },
-    alley: {
-      label: "Type of Alley Access",
-      options: ["Pave", "Grvl"],
-    },
-    lotShape: {
-      label: "Shape of the Lot",
-      options: ["IR1", "Reg", "IR2", "IR3"],
-    },
-    landContour: {
-      label: "Land Topography",
-      options: ["Lvl", "HLS", "Bnk", "Low"],
-    },
-    utilities: {
-      label: "Available Utilities",
-      options: ["AllPub", "NoSewr", "NoSeWa"],
-    },
-    lotConfig: {
-      label: "Lot Configuration",
-      options: ["Corner", "Inside", "CulDSac", "FR2", "FR3"],
-    },
-    landSlope: {
-      label: "Slope of the Land",
-      options: ["Gtl", "Mod", "Sev"],
-    },
-    neighborhood: {
-      label: "Neighborhood",
-      options: [
-        "NAmes",
-        "Gilbert",
-        "StoneBr",
-        "NWAmes",
-        "Somerst",
-        "BrDale",
-        "NPkVill",
-        "NridgHt",
-        "Blmngtn",
-        "NoRidge",
-        "SawyerW",
-        "Sawyer",
-        "Greens",
-        "BrkSide",
-        "OldTown",
-        "IDOTRR",
-        "ClearCr",
-        "SWISU",
-        "Edwards",
-        "CollgCr",
-        "Crawfor",
-        "Blueste",
-        "Mitchel",
-        "Timber",
-        "MeadowV",
-        "Veenker",
-        "GrnHill",
-        "Landmrk",
-      ],
-    },
-    condition1: {
-      label: "Primary Condition",
-      options: [
-        "Norm",
-        "Feedr",
-        "PosN",
-        "RRNe",
-        "RRAe",
-        "Artery",
-        "PosA",
-        "RRAn",
-        "RRNn",
-      ],
-    },
-    condition2: {
-      label: "Secondary Condition",
-      options: [
-        "Norm",
-        "Feedr",
-        "PosA",
-        "PosN",
-        "Artery",
-        "RRNn",
-        "RRAe",
-        "RRAn",
-      ],
-    },
-    bldgType: {
-      label: "Building Type",
-      options: ["1Fam", "TwnhsE", "Twnhs", "Duplex", "2fmCon"],
-    },
-    houseStyle: {
-      label: "House Style",
-      options: [
-        "1Story",
-        "2Story",
-        "1.5Fin",
-        "SFoyer",
-        "SLvl",
-        "2.5Unf",
-        "1.5Unf",
-        "2.5Fin",
-      ],
-    },
-    roofStyle: {
-      label: "Roof Type",
-      options: ["Hip", "Gable", "Mansard", "Gambrel", "Shed", "Flat"],
-    },
-    roofMatl: {
-      label: "Roof Material",
-      options: [
-        "CompShg",
-        "WdShake",
-        "Tar&Grv",
-        "WdShngl",
-        "Membran",
-        "ClyTile",
-        "Roll",
-        "Metal",
-      ],
-    },
-    exterior1st: {
-      label: "Primary Exterior Material",
-      options: [
-        "BrkFace",
-        "VinylSd",
-        "Wd Sdng",
-        "CemntBd",
-        "HdBoard",
-        "Plywood",
-        "MetalSd",
-        "AsbShng",
-        "WdShing",
-        "Stucco",
-        "AsphShn",
-        "BrkComm",
-        "CBlock",
-        "PreCast",
-        "Stone",
-        "ImStucc",
-      ],
-    },
-    exterior2nd: {
-      label: "Secondary Exterior Material",
-      options: [
-        "Plywood",
-        "VinylSd",
-        "Wd Sdng",
-        "BrkFace",
-        "CmentBd",
-        "HdBoard",
-        "Wd Shng",
-        "MetalSd",
-        "ImStucc",
-        "Brk Cmn",
-        "AsbShng",
-        "Stucco",
-        "AsphShn",
-        "CBlock",
-        "Stone",
-        "PreCast",
-        "Other",
-      ],
-    },
-    masVnrType: {
-      label: "Masonry Veneer Type",
-      options: ["Stone", "BrkFace", "BrkCmn", "CBlock"],
-    },
-    exterQual: {
-      label: "Exterior Quality",
-      options: ["TA", "Gd", "Ex", "Fa"],
-    },
-    exterCond: {
-      label: "Exterior Condition",
-      options: ["TA", "Gd", "Fa", "Po", "Ex"],
-    },
-    foundation: {
-      label: "Type of Foundation",
-      options: ["CBlock", "PConc", "Wood", "BrkTil", "Slab", "Stone"],
-    },
-    bsmtQual: {
-      label: "Basement Quality",
-      options: ["TA", "Gd", "Ex", "Fa", "Po"],
-    },
-    bsmtCond: {
-      label: "Basement Condition",
-      options: ["Gd", "TA", "Po", "Fa", "Ex"],
-    },
-    bsmtExposure: {
-      label: "Basement Exposure",
-      options: ["Gd", "No", "Mn", "Av"],
-    },
-    bsmtFinType1: {
-      label: "Finished Basement Type 1",
-      options: ["BLQ", "Rec", "ALQ", "GLQ", "Unf", "LwQ"],
-    },
-    bsmtFinType2: {
-      label: "Finished Basement Type 2",
-      options: ["Unf", "LwQ", "BLQ", "Rec", "GLQ", "ALQ"],
-    },
-    heating: {
-      label: "Heating System Type",
-      options: ["GasA", "GasW", "Grav", "Wall", "Floor", "OthW"],
-    },
-    heatingQC: {
-      label: "Heating System Quality",
-      options: ["Fa", "TA", "Ex", "Gd", "Po"],
-    },
-    centralAir: {
-      label: "Central Air Conditioning",
-      options: ["Y", "N"],
-    },
-    electrical: {
-      label: "Electrical System Type",
-      options: ["SBrkr", "FuseA", "FuseF", "FuseP", "Mix"],
-    },
-    kitchenQual: {
-      label: "Kitchen Quality",
-      options: ["TA", "Gd", "Ex", "Fa", "Po"],
-    },
-    functional: {
-      label: "Overall Functionality",
-      options: ["Typ", "Mod", "Min1", "Min2", "Maj1", "Maj2", "Sev", "Sal"],
-    },
-    fireplaceQu: {
-      label: "Fireplace Quality",
-      options: ["Gd", "TA", "Po", "Ex", "Fa"],
-    },
-    garageType: {
-      label: "Garage Type",
-      options: ["Attchd", "BuiltIn", "Basment", "Detchd", "CarPort", "2Types"],
-    },
-    garageFinish: {
-      label: "Garage Finish",
-      options: ["Fin", "Unf", "RFn"],
-    },
-    garageQual: {
-      label: "Garage Quality",
-      options: ["TA", "Fa", "Gd", "Ex", "Po"],
-    },
-    garageCond: {
-      label: "Garage Condition",
-      options: ["TA", "Fa", "Gd", "Ex", "Po"],
-    },
-    pavedDrive: {
-      label: "Paved Driveway",
-      options: ["P", "Y", "N"],
-    },
-    poolQC: {
-      label: "Pool Quality",
-      options: ["Ex", "Gd", "TA", "Fa"],
-    },
-    fence: {
-      label: "Fence Type",
-      options: ["MnPrv", "GdPrv", "GdWo", "MnWw"],
-    },
-    miscFeature: {
-      label: "Miscellaneous Features",
-      options: ["Gar2", "Shed", "Othr", "Elev", "TenC"],
-    },
-    saleType: {
-      label: "Sale Type",
-      options: [
-        "WD ",
-        "New",
-        "COD",
-        "ConLI",
-        "Con",
-        "ConLD",
-        "Oth",
-        "ConLw",
-        "CWD",
-        "VWD",
-      ],
-    },
-    saleCondition: {
-      label: "Sale Condition",
-      options: ["Normal", "Partial", "Family", "Abnorml", "Alloca", "AdjLand"],
-    },
-  };
-
-  const [formData, setFormData] = useState<Record<string, string | number>>({});
+  const [formData, setFormData] = useState<Record<string, string | number>>({
+    'MS SubClass': 20,
+    'MS Zoning': 'RL',
+    'Lot Frontage': 141.0,
+    'Lot Area': 31770,
+    'Street': 'Pave',
+    'Alley': "",
+    'Lot Shape': 'IR1',
+    'Land Contour': 'Lvl',
+    'Utilities': 'AllPub',
+    'Lot Config': 'Corner',
+    'Land Slope': 'Gtl',
+    'Neighborhood': 'NAmes',
+    'Condition 1': 'Norm',
+    'Condition 2': 'Norm',
+    'Bldg Type': '1Fam',
+    'House Style': '1Story',
+    'Overall Qual': 6,
+    'Overall Cond': 5,
+    'Year Built': 1960,
+    'Year Remod/Add': 1960,
+    'Roof Style': 'Hip',
+    'Roof Matl': 'CompShg',
+    'Exterior 1st': 'BrkFace',
+    'Exterior 2nd': 'Plywood',
+    'Mas Vnr Type': 'Stone',
+    'Mas Vnr Area': 112.0,
+    'Exter Qual': 'TA',
+    'Exter Cond': 'TA',
+    'Foundation': 'CBlock',
+    'Bsmt Qual': 'TA',
+    'Bsmt Cond': 'Gd',
+    'Bsmt Exposure': 'Gd',
+    'BsmtFin Type 1': 'BLQ',
+    'BsmtFin SF 1': 639.0,
+    'BsmtFin Type 2': 'Unf',
+    'BsmtFin SF 2': 0.0,
+    'Bsmt Unf SF': 441.0,
+    'Total Bsmt SF': 1080.0,
+    'Heating': 'GasA',
+    'Heating QC': 'Fa',
+    'Central Air': 'Y',
+    'Electrical': 'SBrkr',
+    '1st Flr SF': 1656,
+    '2nd Flr SF': 0,
+    'Low Qual Fin SF': 0,
+    'Gr Liv Area': 1656,
+    'Bsmt Full Bath': 1.0,
+    'Bsmt Half Bath': 0.0,
+    'Full Bath': 1,
+    'Half Bath': 0,
+    'Bedroom AbvGr': 3,
+    'Kitchen AbvGr': 1,
+    'Kitchen Qual': 'TA',
+    'TotRms AbvGrd': 7,
+    'Functional': 'Typ',
+    'Fireplaces': 2,
+    'Fireplace Qu': 'Gd',
+    'Garage Type': 'Attchd',
+    'Garage Yr Blt': 1960.0,
+    'Garage Finish': 'Fin',
+    'Garage Cars': 2.0,
+    'Garage Area': 528.0,
+    'Garage Qual': 'TA',
+    'Garage Cond': 'TA',
+    'Paved Drive': 'P',
+    'Wood Deck SF': 210,
+    'Open Porch SF': 62,
+    'Enclosed Porch': 0,
+    '3Ssn Porch': 0,
+    'Screen Porch': 0,
+    'Pool Area': 0,
+    'Pool QC': "",
+    'Fence': "",
+    'Misc Feature': "",
+    'Misc Val': 0,
+    'Mo Sold': 5,
+    'Yr Sold': 2010,
+    'Sale Type': 'WD ',
+    'Sale Condition': 'Normal',
+    'SalePrice': 0
+  });
   const [prediction, setPrediction] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -341,20 +98,21 @@ const MainForm: React.FC = () => {
   const handleCategoryChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-  const fetchDataFromBackend = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/api/data");
-      return response.data; // Return fetched data
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      throw new Error("Failed to fetch data from the backend.");
-    }
-  };
+
+  // const fetchDataFromBackend = async () => {
+  //   try {
+  //     const response = await axios.get("http://localhost:5000/api/data");
+  //     return response.data; // Return fetched data
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error);
+  //     throw new Error("Failed to fetch data from the backend.");
+  //   }
+  // };
 
   const sendDataToBackend = async (data: Record<string, string | number>) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/data",
+        "https://43a8-34-168-2-114.ngrok-free.app/predict",
         data,
         {
           headers: {
@@ -362,27 +120,27 @@ const MainForm: React.FC = () => {
           },
         },
       );
-      return response.data; // Return the response for further use
+      return response.data;
     } catch (error) {
       console.error("Error sending data:", error);
       throw new Error("Failed to send data to the backend.");
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchDataFromBackend();
-        console.log("Fetched Data:", data);
-        if (data?.prediction){
-          setPrediction(data.prediction); // Update prediction from response
-          // setIsModalVisible(true); // Show modal after successful submission
-        } // Update prediction if available
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-      }
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const data = await fetchDataFromBackend();
+  //       console.log("Fetched Data:", data);
+  //       if (data?.prediction) {
+  //         setPrediction(data.prediction); // Update prediction from response
+  //         // setIsModalVisible(true); // Show modal after successful submission
+  //       } // Update prediction if available
+  //     } catch (error) {
+  //       console.error("Error fetching initial data:", error);
+  //     }
+  //   })();
+  // }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -392,17 +150,17 @@ const MainForm: React.FC = () => {
       // Send form data to backend and get response
       const response = await sendDataToBackend(formData);
       console.log("Response from server:", response);
-      if (response?.prediction) {
-        setPrediction(response.prediction); // Update prediction from response
+      if (response?.predicted_price) {
+        setPrediction(response.predicted_price); // Update prediction from response
         setIsModalVisible(true); // Show modal after successful submission
       } // Update prediction from response
 
       // Fetch updated data from backend
-      const fetchedData = await fetchDataFromBackend();
-      if (fetchedData?.prediction) {
-        setPrediction(fetchedData.prediction); // Update prediction from response
-        setIsModalVisible(true); // Show modal after successful submission
-      }; // Update prediction from fetched data
+      // const fetchedData = await fetchDataFromBackend();
+      // if (fetchedData?.prediction) {
+      //   setPrediction(fetchedData.prediction); // Update prediction from response
+      //   setIsModalVisible(true); // Show modal after successful submission
+      // }; // Update prediction from fetched data
     } catch (error) {
       console.error("Error during form submission:", error);
       alert("An error occurred while processing your request.");
@@ -420,7 +178,7 @@ const MainForm: React.FC = () => {
       >
         {/* Numeric Input Section */}
         <div className="rounded-lg bg-white p-4 shadow-lg bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-700
-">
+  ">
           <h2 className="mb-4 text-lg font-semibold text-white">
             Enter Property Details (Numerical)
           </h2>
@@ -429,6 +187,7 @@ const MainForm: React.FC = () => {
               <div key={inputField}>
                 <Input
                   label={label}
+                  defaultValue={formData[inputField] || ""}
                   value={formData[inputField] || ""}
                   onChange={(value) => handleInputChange(inputField, value)}
                 />
@@ -439,7 +198,7 @@ const MainForm: React.FC = () => {
 
         {/* Category Input Section */}
         <div className="rounded-lg bg-white p-4 shadow-lg bg-gradient-to-r from-blue-700 via-indigo-800 to-purple-700
-">
+  ">
           <h2 className="mb-4 text-lg font-semibold text-white">
             Select Property Characteristics (Categorical)
           </h2>
